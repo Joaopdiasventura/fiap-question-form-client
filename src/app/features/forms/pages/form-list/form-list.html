@@ -1,0 +1,41 @@
+<app-app-header context="Painel administrativo" [showLogout]="true" (logout)="logout()" />
+
+<main class="page">
+  <div class="toolbar">
+    <div>
+      <p class="page-kicker">Administracao</p>
+      <h1 class="page-title">Formularios</h1>
+    </div>
+    <a class="button button--primary" routerLink="/admin/forms/new">Novo formulario</a>
+  </div>
+
+  @if (loading()) {
+    <app-loading-state label="Carregando formularios" />
+  } @else if (error()) {
+    <section class="card list-card" role="alert">
+      <h2>Falha ao carregar</h2>
+      <p class="error">{{ error() }}</p>
+      <button class="button" type="button" (click)="load()">Tentar novamente</button>
+    </section>
+  } @else if (!forms().length) {
+    <app-empty-state title="Nenhum formulario" message="Crie o primeiro formulario para publicar a pesquisa." />
+  } @else {
+    <section class="grid" aria-label="Lista de formularios">
+      @for (form of forms(); track form.id) {
+        <article class="card list-card">
+          <span class="badge" [class.badge--pink]="form.status === 'PUBLISHED'">{{ form.status }}</span>
+          <h2>{{ form.title }}</h2>
+          <p class="muted">{{ form.description }}</p>
+          <strong>{{ form.totalResponses }} respostas</strong>
+          <div class="actions">
+            <a class="button" [routerLink]="['/admin/forms', form.id, 'edit']">Editar</a>
+            <a class="button button--ghost" [routerLink]="['/admin/forms', form.id, 'results']">Resultados</a>
+            @if (form.status === 'PUBLISHED') {
+              <a class="button button--primary" [routerLink]="['/forms', form.id]">Responder</a>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

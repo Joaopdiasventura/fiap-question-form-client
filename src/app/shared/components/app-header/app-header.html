@@ -1,0 +1,16 @@
+<header class="fiap-header">
+  <div class="fiap-header__inner">
+    <a class="fiap-wordmark" routerLink="/admin/forms" aria-label="FIAP Forms inicio">FIAP <span>FORMS</span></a>
+    <div class="actions">
+      @if (context()) {
+        <span class="fiap-context">{{ context() }}</span>
+      }
+      @if (showAdminLink()) {
+        <a class="button button--primary" routerLink="/admin/forms">Admin</a>
+      }
+      @if (showLogout()) {
+        <button class="button button--ghost" type="button" (click)="logout.emit()">Sair</button>
+      }
+    </div>
+  </div>
+</header>

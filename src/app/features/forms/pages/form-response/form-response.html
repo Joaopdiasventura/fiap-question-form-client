@@ -1,0 +1,30 @@
+<app-app-header context="Pesquisa publicada" [showAdminLink]="true" />
+
+<main class="page page--narrow">
+  @if (loading()) {
+    <app-loading-state label="Carregando pesquisa" />
+  } @else if (error() && !formData()) {
+    <section class="card question-card" role="alert">
+      <h1 class="page-title">Pesquisa indisponivel</h1>
+      <p class="error">{{ error() }}</p>
+    </section>
+  } @else if (formData(); as form) {
+    <p class="page-kicker">Pesquisa FIAP</p>
+    <h1 class="page-title">{{ form.title }}</h1>
+    <p class="page-intro">{{ form.description }}</p>
+
+    <form class="stack" [formGroup]="responseForm" (ngSubmit)="submit()">
+      @for (question of form.questions; track question.id) {
+        <app-question-renderer [question]="question" [form]="responseForm" [submitted]="submitted()" />
+      }
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+
+      <button class="button button--primary" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Enviando...' : 'Enviar respostas' }}
+      </button>
+    </form>
+  }
+</main>

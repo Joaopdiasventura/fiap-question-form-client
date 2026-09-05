@@ -1,0 +1,77 @@
+<app-app-header context="Editor administrativo" />
+
+<main class="page page--editor">
+  <div class="toolbar">
+    <div>
+      <p class="page-kicker">{{ isEdit() ? 'Editar formulario' : 'Criar formulario' }}</p>
+      <h1 class="page-title">Construtor da pesquisa</h1>
+    </div>
+    <div class="actions">
+      <a class="button button--ghost" routerLink="/admin/forms">Voltar</a>
+      <button class="button button--primary" type="button" [disabled]="saving()" (click)="save()">
+        {{ saving() ? 'Salvando...' : 'Salvar' }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-loading-state label="Carregando formulario" />
+  } @else {
+    <form class="form-grid" [formGroup]="editorForm" (ngSubmit)="save()">
+      <section class="card question-card">
+        <div class="form-grid">
+          <div class="grid">
+            <div class="field">
+              <label for="title">Titulo</label>
+              <input class="input" id="title" formControlName="title" />
+              @if (editorForm.controls.title.invalid && editorForm.controls.title.touched) {
+                <span class="error">Informe o titulo.</span>
+              }
+            </div>
+            <div class="field">
+              <label for="status">Status</label>
+              <select class="input" id="status" formControlName="status">
+                <option value="DRAFT">Rascunho</option>
+                <option value="PUBLISHED">Publicado</option>
+                <option value="CLOSED">Fechado</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="description">Descricao</label>
+            <textarea class="input" id="description" formControlName="description"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <div formArrayName="questions" class="stack">
+        @for (question of questions().controls; track question.controls.id.value || $index) {
+          <app-question-editor
+            [question]="question"
+            [index]="$index"
+            [canMoveUp]="$index > 0"
+            [canMoveDown]="$index < questions().length - 1"
+            (remove)="removeQuestion($index)"
+            (moveUp)="moveQuestion($index, -1)"
+            (moveDown)="moveQuestion($index, 1)"
+          />
+        }
+      </div>
+
+      <div class="actions">
+        <button class="button button--ghost" type="button" (click)="addQuestion()">Adicionar pergunta</button>
+        <button class="button button--primary" type="submit" [disabled]="saving()">{{ saving() ? 'Salvando...' : 'Salvar' }}</button>
+      </div>
+
+      @if (optionValidationMessage()) {
+        <p class="error" role="alert">{{ optionValidationMessage() }}</p>
+      }
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      @if (saved()) {
+        <p class="badge badge--pink" role="status">{{ saved() }}</p>
+      }
+    </form>
+  }
+</main>

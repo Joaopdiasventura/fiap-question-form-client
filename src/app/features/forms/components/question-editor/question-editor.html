@@ -1,0 +1,51 @@
+<section class="card question-card card--active" [formGroup]="question()">
+  <div class="question-head">
+    <h2>Pergunta {{ index() + 1 }}</h2>
+    <div class="actions">
+      <button class="button button--ghost" type="button" [disabled]="!canMoveUp()" (click)="moveUp.emit()">Subir</button>
+      <button class="button button--ghost" type="button" [disabled]="!canMoveDown()" (click)="moveDown.emit()">Descer</button>
+      <button class="button button--danger" type="button" (click)="remove.emit()">Remover</button>
+    </div>
+  </div>
+
+  <div class="form-grid">
+    <div class="field">
+      <label [for]="'question-title-' + index()">Titulo</label>
+      <input class="input" [id]="'question-title-' + index()" formControlName="title" />
+      @if (question().controls.title.invalid && question().controls.title.touched) {
+        <span class="error">Informe o titulo da pergunta.</span>
+      }
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label [for]="'question-type-' + index()">Tipo</label>
+        <select class="input" [id]="'question-type-' + index()" formControlName="type" (change)="onTypeChange()">
+          @for (type of questionTypes; track type) {
+            <option [value]="type">{{ typeLabel(type) }}</option>
+          }
+        </select>
+      </div>
+
+      <label class="inline-choice">
+        <input type="checkbox" formControlName="required" />
+        Obrigatoria
+      </label>
+    </div>
+
+    @if (usesOptions()) {
+      <fieldset class="field">
+        <legend>Opcoes</legend>
+        <div class="stack">
+          @for (option of options().controls; track $index) {
+            <div class="option-row">
+              <input class="input" [formControl]="option" [attr.aria-label]="'Opcao ' + ($index + 1)" />
+              <button class="button button--danger" type="button" (click)="removeOption($index)">Excluir</button>
+            </div>
+          }
+        </div>
+        <button class="button button--ghost" type="button" (click)="addOption()">Adicionar opcao</button>
+      </fieldset>
+    }
+  </div>
+</section>
