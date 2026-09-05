@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
+import { publicFormResolver } from './features/forms/resolvers/public-form-resolver';
 
 export const routes: Routes = [
   {
@@ -33,6 +34,9 @@ export const routes: Routes = [
   },
   {
     path: 'forms/:id',
+    resolve: {
+      form: publicFormResolver,
+    },
     loadComponent: () => import('./features/forms/pages/form-response/form-response').then((module) => module.FormResponse),
   },
   {

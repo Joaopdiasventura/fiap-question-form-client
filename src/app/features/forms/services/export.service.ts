@@ -1,10 +1,13 @@
-import { Service, inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, Service, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { PresentationService } from './presentation.service';
 
 @Service()
 export class ExportService {
   private readonly presentation = inject(PresentationService);
+  private readonly document = inject(DOCUMENT);
+  private readonly platformId = inject(PLATFORM_ID);
 
   exportCsv(formId: string): Observable<Blob> {
     return this.presentation.generateData(formId).pipe(
@@ -28,8 +31,12 @@ export class ExportService {
   download(formId: string): Observable<void> {
     return this.exportCsv(formId).pipe(
       map((blob) => {
+        if (!isPlatformBrowser(this.platformId)) {
+          return;
+        }
+
         const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
+        const anchor = this.document.createElement('a');
         anchor.href = url;
         anchor.download = `fiap-form-${formId}.csv`;
         anchor.click();

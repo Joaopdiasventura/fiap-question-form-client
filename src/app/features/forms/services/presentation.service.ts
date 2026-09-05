@@ -37,7 +37,7 @@ export class PresentationService {
       .map((answer) => answer.value)
       .filter((value) => Array.isArray(value) ? value.length > 0 : value !== '' && value !== null && value !== undefined);
 
-    if (question.type === 'TEXT' || question.type === 'TEXTAREA') {
+    if (question.type === 'TEXT' || question.type === 'TEXTAREA' || question.type === 'DATE') {
       return {
         question,
         type: question.type,

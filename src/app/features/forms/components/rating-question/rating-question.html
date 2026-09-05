@@ -1,0 +1,36 @@
+<section class="question-block">
+  <span class="question-index">Pergunta {{ index() + 1 }}</span>
+  <fieldset class="field">
+    <legend class="question-block__title">
+      {{ question().title }}
+      @if (question().required) {
+        <span class="required" aria-hidden="true">*</span><span class="sr-only">Obrigatoria</span>
+      }
+    </legend>
+    <div class="star-rating" role="radiogroup" [attr.aria-label]="question().title">
+      @for (star of stars; track star) {
+        <button
+          class="star-rating__button"
+          type="button"
+          role="radio"
+          [attr.aria-checked]="value() === star"
+          [attr.aria-label]="star + ' de 5'"
+          [disabled]="disabled()"
+          [class.star-rating__button--active]="active(star)"
+          (click)="select(star)"
+          (focus)="preview.set(star)"
+          (mouseenter)="preview.set(star)"
+          (mouseleave)="preview.set(null)"
+          (blur)="preview.set(null); touched.emit()"
+          (keydown)="onKeydown($event, star)"
+        >
+          {{ active(star) ? '★' : '☆' }}
+        </button>
+      }
+    </div>
+    <span class="muted" aria-live="polite">Valor selecionado: {{ value() || 'nenhum' }}</span>
+    @if (invalid()) {
+      <span class="error" [id]="question().id + '-error'">Selecione uma avaliacao de 1 a 5.</span>
+    }
+  </fieldset>
+</section>

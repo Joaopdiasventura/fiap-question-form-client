@@ -1,0 +1,45 @@
+.star-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  padding: 10px 0;
+}
+
+.star-rating__button {
+  min-width: 48px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--fiap-muted-soft);
+  cursor: pointer;
+  font-size: clamp(2.4rem, 8vw, 4.6rem);
+  line-height: 1;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.star-rating__button:hover,
+.star-rating__button--active {
+  color: var(--fiap-pink);
+}
+
+.star-rating__button:hover {
+  transform: translateY(-2px);
+}
+
+.star-rating__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 520px) {
+  .star-rating {
+    gap: 6px;
+  }
+
+  .star-rating__button {
+    min-width: 40px;
+  }
+}

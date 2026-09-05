@@ -18,6 +18,13 @@
         }
       </div>
     }
+    @case ('DATE') {
+      <div class="stack">
+        @for (response of textResponses(); track $index) {
+          <p class="answer-row">{{ response }}</p>
+        }
+      </div>
+    }
     @case ('NUMBER') {
       <div class="grid">
         <strong>Media {{ numberStat().average }}</strong>

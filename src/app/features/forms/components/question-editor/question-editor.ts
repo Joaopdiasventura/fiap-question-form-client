@@ -57,6 +57,7 @@ export class QuestionEditor {
       SINGLE_CHOICE: 'Escolha unica',
       MULTIPLE_CHOICE: 'Multipla escolha',
       RATING: 'Avaliacao 1 a 5',
+      DATE: 'Data',
     };
 
     return labels[type];

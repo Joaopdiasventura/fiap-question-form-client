@@ -1,0 +1,26 @@
+<section class="question-block">
+  <span class="question-index">Pergunta {{ index() + 1 }}</span>
+  <div class="field">
+    <label class="question-block__title" [for]="question().id">
+      {{ question().title }}
+      @if (question().required) {
+        <span class="required" aria-hidden="true">*</span><span class="sr-only">Obrigatoria</span>
+      }
+    </label>
+    <textarea
+      class="input"
+      [id]="question().id"
+      [value]="value() ?? ''"
+      [disabled]="disabled()"
+      [class.input--invalid]="invalid()"
+      [attr.aria-invalid]="invalid()"
+      [attr.aria-describedby]="invalid() ? question().id + '-error' : null"
+      placeholder="Escreva sua resposta"
+      (input)="onInput($event)"
+      (blur)="touched.emit()"
+    ></textarea>
+    @if (invalid()) {
+      <span class="error" [id]="question().id + '-error'">Responda esta pergunta obrigatoria.</span>
+    }
+  </div>
+</section>

@@ -1,0 +1,16 @@
+<label class="toggle-option" [class.toggle-option--disabled]="disabled()" [for]="id()">
+  <input
+    class="toggle-option__input"
+    [type]="controlType()"
+    [id]="id()"
+    [name]="name()"
+    [checked]="checked()"
+    [disabled]="disabled()"
+    (change)="onChange($event)"
+    (blur)="touched.emit()"
+  />
+  <span class="toggle-option__switch" aria-hidden="true">
+    <span class="toggle-option__thumb"></span>
+  </span>
+  <span class="toggle-option__label">{{ label() }}</span>
+</label>

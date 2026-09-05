@@ -4,7 +4,8 @@ export type QuestionType =
   | 'NUMBER'
   | 'SINGLE_CHOICE'
   | 'MULTIPLE_CHOICE'
-  | 'RATING';
+  | 'RATING'
+  | 'DATE';
 
 export type FormStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED';
 
@@ -15,6 +16,7 @@ export const QUESTION_TYPES: readonly QuestionType[] = [
   'SINGLE_CHOICE',
   'MULTIPLE_CHOICE',
   'RATING',
+  'DATE',
 ] as const;
 
 export interface Question {
@@ -73,7 +75,7 @@ export interface ChoiceStatistic {
 
 export interface TextStatistic {
   question: Question;
-  type: 'TEXT' | 'TEXTAREA';
+  type: 'TEXT' | 'TEXTAREA' | 'DATE';
   totalAnswered: number;
   responses: string[];
 }

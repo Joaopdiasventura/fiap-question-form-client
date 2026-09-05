@@ -1,10 +1,10 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AppHeader } from '../../../../shared/components/app-header/app-header';
 import { LoadingState } from '../../../../shared/components/loading-state/loading-state';
+import { AuthService } from '../../../auth/services/auth.service';
 import { QuestionRenderer } from '../../components/question-renderer/question-renderer';
 import { AnswerValue, FormResponseDto, Question, SubmitFormDto } from '../../models/form.models';
 import { FormService } from '../../services/form.service';
@@ -13,7 +13,7 @@ import { SubmissionService } from '../../services/submission.service';
 type ResponseFormGroup = FormGroup<Record<string, FormControl<AnswerValue | null>>>;
 
 @Component({
-  imports: [AppHeader, LoadingState, QuestionRenderer, ReactiveFormsModule],
+  imports: [LoadingState, QuestionRenderer, ReactiveFormsModule],
   selector: 'app-form-response',
   styleUrl: './form-response.scss',
   templateUrl: './form-response.html',
@@ -21,20 +21,27 @@ type ResponseFormGroup = FormGroup<Record<string, FormControl<AnswerValue | null
 export class FormResponse {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly forms = inject(FormService);
   private readonly submissions = inject(SubmissionService);
+  private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly formId = this.route.snapshot.paramMap.get('id') || '';
 
-  protected readonly loading = signal(true);
+  protected readonly loading = signal(false);
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
   protected readonly error = signal('');
   protected readonly formData = signal<FormResponseDto | null>(null);
+  protected readonly isAuthenticated = this.auth.isAuthenticated;
   protected responseForm: ResponseFormGroup = new FormGroup<Record<string, FormControl<AnswerValue | null>>>({});
 
   constructor() {
-    this.load();
+    const resolvedForm = this.route.snapshot.data['form'] as FormResponseDto | undefined;
+
+    if (resolvedForm) {
+      this.applyLoadedForm(resolvedForm);
+    } else {
+      this.error.set('Formulario nao encontrado');
+    }
   }
 
   submit(): void {
@@ -62,24 +69,20 @@ export class FormResponse {
     });
   }
 
-  private load(): void {
-    this.forms.findById(this.formId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (form) => {
-        if (form.status !== 'PUBLISHED') {
-          this.error.set('Formulario indisponivel para respostas.');
-          this.loading.set(false);
-          return;
-        }
+  back(): void {
+    void this.router.navigate(['/admin/forms']);
+  }
 
-        this.formData.set(form);
-        this.responseForm = this.createResponseForm(form.questions);
-        this.loading.set(false);
-      },
-      error: (error: Error) => {
-        this.error.set(error.message);
-        this.loading.set(false);
-      },
-    });
+  private applyLoadedForm(form: FormResponseDto): void {
+    if (form.status !== 'PUBLISHED') {
+      this.error.set('Formulario indisponivel para respostas.');
+      this.loading.set(false);
+      return;
+    }
+
+    this.formData.set(form);
+    this.responseForm = this.createResponseForm(form.questions);
+    this.loading.set(false);
   }
 
   private createResponseForm(questions: Question[]): ResponseFormGroup {

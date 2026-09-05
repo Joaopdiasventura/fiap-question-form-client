@@ -1,11 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { NEVER, of } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { FormResponse } from './form-response';
 import { FormService } from '../../services/form.service';
 import { SubmissionService } from '../../services/submission.service';
 import { AnswerValue, FormResponseDto } from '../../models/form.models';
 import { FormControl, FormGroup } from '@angular/forms';
+import { AuthService } from '../../../auth/services/auth.service';
 
 describe('FormResponse', () => {
   let component: FormResponse;
@@ -19,7 +21,7 @@ describe('FormResponse', () => {
       imports: [FormResponse],
       providers: [
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: new Map([['id', 'form-test']]) } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { data: { form: formDto }, paramMap: new Map([['id', 'form-test']]) } } },
         { provide: FormService, useValue: { findById: vi.fn().mockReturnValue(of(formDto)) } },
         { provide: SubmissionService, useValue: { submit: submitSpy } },
       ],
@@ -38,9 +40,34 @@ describe('FormResponse', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
+    expect(compiled.querySelector('input[type="text"]')).toBeTruthy();
     expect(compiled.querySelector('textarea')).toBeTruthy();
     expect(compiled.querySelector('input[type="number"]')).toBeTruthy();
+    expect(compiled.querySelector('input[type="date"]')).toBeTruthy();
+    expect(compiled.querySelector('input[type="radio"]')).toBeTruthy();
+    expect(compiled.querySelector('input[type="checkbox"]')).toBeTruthy();
     expect(compiled.querySelector('[role="radiogroup"]')).toBeTruthy();
+  });
+
+  it('does not show navigation actions to anonymous visitors', () => {
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent || '';
+
+    expect(text).not.toContain('Voltar');
+    expect(text).not.toContain('Admin');
+    expect(text).not.toContain('Entrar');
+  });
+
+  it('shows only the secondary back action for authenticated users', async () => {
+    const auth = TestBed.inject(AuthService);
+
+    await firstValueFrom(auth.login({ email: 'admin@fiap.com.br', password: 'fiap123' }));
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent || '';
+
+    expect(text).toContain('Voltar');
+    expect(text).not.toContain('Resultados');
+    expect(text).not.toContain('Editar');
   });
 
   it('validates required questions before submit', () => {
@@ -57,6 +84,7 @@ describe('FormResponse', () => {
     responseForm.controls['qSingle'].setValue('Noite');
     responseForm.controls['qMultiple'].setValue(['Aulas']);
     responseForm.controls['qRating'].setValue(5);
+    responseForm.controls['qDate'].setValue('2026-09-05');
 
     component.submit();
     component.submit();
@@ -70,6 +98,7 @@ describe('FormResponse', () => {
         { questionId: 'qSingle', value: 'Noite' },
         { questionId: 'qMultiple', value: ['Aulas'] },
         { questionId: 'qRating', value: 5 },
+        { questionId: 'qDate', value: '2026-09-05' },
       ],
     });
   });
@@ -88,6 +117,7 @@ const formDto: FormResponseDto = {
     { id: 'qSingle', title: 'Periodo', type: 'SINGLE_CHOICE', options: ['Manha', 'Noite'], required: true },
     { id: 'qMultiple', title: 'Recursos', type: 'MULTIPLE_CHOICE', options: ['Aulas', 'Notas'], required: false },
     { id: 'qRating', title: 'Nota', type: 'RATING', options: [], required: true },
+    { id: 'qDate', title: 'Data', type: 'DATE', options: [], required: true },
   ],
 };
 

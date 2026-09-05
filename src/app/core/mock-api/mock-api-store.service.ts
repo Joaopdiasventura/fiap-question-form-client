@@ -71,6 +71,13 @@ export class MockApiStoreService {
           options: [],
           required: true,
         },
+        {
+          id: 'q-date',
+          title: 'Em qual data voce respondeu esta pesquisa?',
+          type: 'DATE',
+          options: [],
+          required: true,
+        },
       ],
     },
   ];

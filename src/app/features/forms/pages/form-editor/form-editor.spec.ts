@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormControl } from '@angular/forms';
 import { of } from 'rxjs';
 import { FormEditor } from './form-editor';
 import { FormService } from '../../services/form.service';
@@ -96,6 +97,25 @@ describe('FormEditor', () => {
         },
       ],
     });
+  });
+
+  it('saves date questions without stale options', () => {
+    const form = getEditorForm(component);
+    form.controls.title.setValue('Pesquisa');
+    form.controls.questions.at(0).controls.title.setValue('Data da resposta');
+    form.controls.questions.at(0).controls.type.setValue('DATE');
+    form.controls.questions.at(0).controls.options.push(new FormControl('Opcao antiga', { nonNullable: true }));
+
+    component.save();
+
+    expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({
+      questions: [
+        expect.objectContaining({
+          type: 'DATE',
+          options: [],
+        }),
+      ],
+    }));
   });
 });
 

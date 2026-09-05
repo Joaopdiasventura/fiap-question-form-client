@@ -1,87 +1,79 @@
-<section class="card question-card" [formGroup]="form()">
-  <div class="field">
-    @switch (question().type) {
-      @case ('TEXT') {
-        <label [for]="question().id">
-          {{ question().title }}
-          @if (question().required) {
-            <span class="required" aria-hidden="true">*</span><span class="sr-only">Obrigatoria</span>
-          }
-        </label>
-        <input class="input" [id]="question().id" [formControlName]="question().id" [attr.aria-describedby]="question().id + '-error'" />
-      }
-      @case ('TEXTAREA') {
-        <label [for]="question().id">
-          {{ question().title }}
-          @if (question().required) {
-            <span class="required" aria-hidden="true">*</span><span class="sr-only">Obrigatoria</span>
-          }
-        </label>
-        <textarea class="input" [id]="question().id" [formControlName]="question().id" [attr.aria-describedby]="question().id + '-error'"></textarea>
-      }
-      @case ('NUMBER') {
-        <label [for]="question().id">
-          {{ question().title }}
-          @if (question().required) {
-            <span class="required" aria-hidden="true">*</span><span class="sr-only">Obrigatoria</span>
-          }
-        </label>
-        <input class="input" type="number" [id]="question().id" [formControlName]="question().id" [attr.aria-describedby]="question().id + '-error'" />
-      }
-      @case ('SINGLE_CHOICE') {
-        <fieldset class="field">
-          <legend>
-            {{ question().title }}
-            @if (question().required) {
-              <span class="required" aria-hidden="true">*</span><span class="sr-only">Obrigatoria</span>
-            }
-          </legend>
-          @for (option of question().options; track option) {
-            <label class="inline-choice">
-              <input type="radio" [name]="question().id" [value]="option" [formControlName]="question().id" />
-              {{ option }}
-            </label>
-          }
-        </fieldset>
-      }
-      @case ('MULTIPLE_CHOICE') {
-        <fieldset class="field">
-          <legend>
-            {{ question().title }}
-            @if (question().required) {
-              <span class="required" aria-hidden="true">*</span><span class="sr-only">Obrigatoria</span>
-            }
-          </legend>
-          @for (option of question().options; track option) {
-            <label class="inline-choice">
-              <input type="checkbox" [checked]="selectedOptions().includes(option)" (change)="toggleOption(option, $any($event.target).checked)" />
-              {{ option }}
-            </label>
-          }
-        </fieldset>
-      }
-      @case ('RATING') {
-        <fieldset class="field">
-          <legend>
-            {{ question().title }}
-            @if (question().required) {
-              <span class="required" aria-hidden="true">*</span><span class="sr-only">Obrigatoria</span>
-            }
-          </legend>
-          <div class="rating" role="radiogroup" [attr.aria-label]="question().title">
-            @for (rating of [1, 2, 3, 4, 5]; track rating) {
-              <button type="button" role="radio" [attr.aria-checked]="control()?.value === rating" (click)="setRating(rating)" (keydown)="onRatingKeydown($event, rating)">
-                {{ rating }}
-              </button>
-            }
-          </div>
-          <span class="muted" aria-live="polite">Valor selecionado: {{ control()?.value || 'nenhum' }}</span>
-        </fieldset>
-      }
-    }
-
-    @if (showError()) {
-      <span class="error" [id]="question().id + '-error'">Responda esta pergunta obrigatoria.</span>
-    }
-  </div>
-</section>
+@switch (question().type) {
+  @case ('TEXT') {
+    <app-text-question
+      [question]="question()"
+      [index]="index()"
+      [value]="stringValue()"
+      [invalid]="showError()"
+      [disabled]="disabled()"
+      (valueChange)="setValue($event)"
+      (touched)="markTouched()"
+    />
+  }
+  @case ('TEXTAREA') {
+    <app-textarea-question
+      [question]="question()"
+      [index]="index()"
+      [value]="stringValue()"
+      [invalid]="showError()"
+      [disabled]="disabled()"
+      (valueChange)="setValue($event)"
+      (touched)="markTouched()"
+    />
+  }
+  @case ('NUMBER') {
+    <app-number-question
+      [question]="question()"
+      [index]="index()"
+      [value]="numberValue()"
+      [invalid]="showError()"
+      [disabled]="disabled()"
+      (valueChange)="setValue($event)"
+      (touched)="markTouched()"
+    />
+  }
+  @case ('SINGLE_CHOICE') {
+    <app-single-choice-question
+      [question]="question()"
+      [index]="index()"
+      [value]="stringValue()"
+      [invalid]="showError()"
+      [disabled]="disabled()"
+      (valueChange)="setValue($event)"
+      (touched)="markTouched()"
+    />
+  }
+  @case ('MULTIPLE_CHOICE') {
+    <app-multiple-choice-question
+      [question]="question()"
+      [index]="index()"
+      [value]="selectedOptions()"
+      [invalid]="showError()"
+      [disabled]="disabled()"
+      (valueChange)="setValue($event)"
+      (touched)="markTouched()"
+    />
+  }
+  @case ('RATING') {
+    <app-rating-question
+      [question]="question()"
+      [index]="index()"
+      [value]="numberValue()"
+      [invalid]="showError()"
+      [disabled]="disabled()"
+      (valueChange)="setValue($event)"
+      (touched)="markTouched()"
+    />
+  }
+  @case ('DATE') {
+    <app-date-question
+      [question]="question()"
+      [index]="index()"
+      [value]="stringValue()"
+      [invalid]="showError()"
+      [disabled]="disabled()"
+      (valueChange)="setValue($event)"
+      (touched)="markTouched()"
+    />
+  }
+}
