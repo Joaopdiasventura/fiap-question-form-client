@@ -1,7 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WritableSignal } from '@angular/core';
 import { FieldTree } from '@angular/forms/signals';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Subject, of, throwError } from 'rxjs';
 import { CareerSurvey } from './career-survey';
+import { SubmissionResponse, SubmissionService } from '../../services/submission.service';
 
 interface SurveyFormModel {
   participationConsent: boolean;
@@ -26,7 +29,10 @@ interface CareerSurveyTestApi {
   formModel: WritableSignal<SurveyFormModel>;
   dragPreview(): { label: string; width: number; height: number; x: number; y: number } | null;
   shareStatus(): 'idle' | 'copied' | 'error';
-  submit(event: Event): void;
+  submitting(): boolean;
+  submissionError(): string | null;
+  emailApiError(): string | null;
+  submit(event: Event): Promise<void>;
   shareSurvey(): Promise<void>;
   copySurveyLink(): Promise<void>;
   continueFromSection(): void;
@@ -45,10 +51,21 @@ interface CareerSurveyTestApi {
 describe('CareerSurvey', () => {
   let fixture: ComponentFixture<CareerSurvey>;
   let component: CareerSurveyTestApi;
+  let createSubmission: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
+    createSubmission = vi.fn(() => of({ message: 'Resposta cadastrada com sucesso' }));
+
     await TestBed.configureTestingModule({
       imports: [CareerSurvey],
+      providers: [
+        {
+          provide: SubmissionService,
+          useValue: {
+            createSubmission,
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CareerSurvey);
@@ -62,26 +79,23 @@ describe('CareerSurvey', () => {
     expect(text).toContain('Mercado de TI em 2026');
   });
 
-  it('does not log when consent or required fields are invalid', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  it('does not submit when consent or required fields are invalid', async () => {
     const event = new Event('submit');
     const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
 
-    component.submit(event);
+    await component.submit(event);
 
     expect(preventDefaultSpy).toHaveBeenCalled();
-    expect(logSpy).not.toHaveBeenCalled();
+    expect(createSubmission).not.toHaveBeenCalled();
   });
 
-  it('logs one clean object when the survey is valid', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
-
+  it('sends one clean object when the survey is valid', async () => {
     patchFormValues(component, validFormValues());
 
-    component.submit(new Event('submit'));
+    await component.submit(new Event('submit'));
 
-    expect(logSpy).toHaveBeenCalledOnce();
-    expect(logSpy).toHaveBeenCalledWith({
+    expect(createSubmission).toHaveBeenCalledOnce();
+    expect(createSubmission).toHaveBeenCalledWith({
       participationConsent: true,
       academicUseConsent: true,
       name: 'Joao',
@@ -107,7 +121,7 @@ describe('CareerSurvey', () => {
     HTMLElement.prototype.scrollIntoView = scrollIntoView;
 
     patchFormValues(component, validFormValues());
-    component.submit(new Event('submit'));
+    await component.submit(new Event('submit'));
     fixture.detectChanges();
     await fixture.whenStable();
     await nextFrame();
@@ -122,6 +136,46 @@ describe('CareerSurvey', () => {
     });
 
     HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+  });
+
+  it('keeps the user on the form and marks email when the API rejects a duplicate email', async () => {
+    createSubmission.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: { message: 'Esse e-mail já está sendo utilizado' },
+          }),
+      ),
+    );
+
+    patchFormValues(component, validFormValues());
+    await component.submit(new Event('submit'));
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent || '';
+
+    expect(component.currentSectionIndex()).toBe(1);
+    expect(component.emailApiError()).toBe('Esse e-mail já está sendo utilizado');
+    expect(text).toContain('Esse e-mail já está sendo utilizado');
+  });
+
+  it('prevents duplicate requests while a submission is in progress', async () => {
+    const request = new Subject<SubmissionResponse>();
+    createSubmission.mockReturnValue(request);
+
+    patchFormValues(component, validFormValues());
+    const firstSubmit = component.submit(new Event('submit'));
+
+    expect(component.submitting()).toBe(true);
+
+    await component.submit(new Event('submit'));
+
+    expect(createSubmission).toHaveBeenCalledOnce();
+
+    request.next({ message: 'Resposta cadastrada com sucesso' });
+    request.complete();
+    await firstSubmit;
   });
 
   it('validates only the current section before moving forward', () => {

@@ -96,10 +96,11 @@
                 [question]="questions.email"
                 [index]="3"
                 [value]="form.email().value()"
-                [invalid]="showError(form.email)"
+                [invalid]="showError(form.email) || emailApiError() !== null"
+                [errorMessage]="emailApiError()"
                 inputType="email"
                 autocomplete="email"
-                (valueChange)="setTextValue(form.email, $event)"
+                (valueChange)="setEmailValue($event)"
                 (touched)="markTouched(form.email)"
               />
               <app-single-choice-question
@@ -360,6 +361,9 @@
 
       @if (!isSuccessSection()) {
         <div class="actions survey-actions">
+          @if (submissionError(); as errorMessage) {
+            <p class="error submission-error" role="alert">{{ errorMessage }}</p>
+          }
           <button
             class="button button--ghost"
             type="button"
@@ -369,7 +373,9 @@
             Voltar
           </button>
           @if (isFinalSurveySection()) {
-            <button class="button button--primary" type="submit">Enviar respostas</button>
+            <button class="button button--primary" type="submit" [disabled]="submitting()">
+              {{ submitting() ? 'Enviando...' : 'Enviar respostas' }}
+            </button>
           } @else {
             <button class="button button--primary" type="button" (click)="continueFromSection()">
               Continuar

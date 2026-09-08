@@ -10,6 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   FieldTree,
   email,
@@ -21,6 +22,7 @@ import {
   schema,
   validate,
 } from '@angular/forms/signals';
+import { firstValueFrom } from 'rxjs';
 import { MultipleChoiceQuestion } from '../../components/multiple-choice-question/multiple-choice-question';
 import { NumberQuestion } from '../../components/number-question/number-question';
 import { RatingQuestion } from '../../components/rating-question/rating-question';
@@ -28,6 +30,15 @@ import { SingleChoiceQuestion } from '../../components/single-choice-question/si
 import { TextQuestion } from '../../components/text-question/text-question';
 import { TextareaQuestion } from '../../components/textarea-question/textarea-question';
 import { Question, QuestionOption, QuestionOptionValue } from '../../models/form.models';
+import {
+  CareerPriority,
+  CreateSubmissionDto,
+  CurrentSituation,
+  ExperienceLevel,
+  InterestArea,
+  SubmissionService,
+  Technology,
+} from '../../services/submission.service';
 
 interface SurveyFormModel {
   participationConsent: boolean;
@@ -47,15 +58,7 @@ interface SurveyFormModel {
   additionalComments: string;
 }
 
-interface SurveyAnswers extends Omit<
-  SurveyFormModel,
-  'marketConfidence' | 'recommendationScore' | 'age' | 'salaryExpectation'
-> {
-  marketConfidence: number;
-  recommendationScore: number;
-  age: number;
-  salaryExpectation: number;
-}
+type SurveyAnswers = CreateSubmissionDto;
 
 type SurveyControlName = keyof SurveyFormModel;
 type SurveyField =
@@ -87,6 +90,10 @@ interface PriorityDragPreview {
   height: number;
   x: number;
   y: number;
+}
+
+interface ApiErrorBody {
+  message?: unknown;
 }
 
 const requiredPriorities = ['salary', 'remoteWork', 'purpose', 'stability', 'learning'] as const;
@@ -155,6 +162,9 @@ function isValidRanking(value: string[]): boolean {
 })
 export class CareerSurvey implements OnDestroy {
   protected readonly submitted = signal(false);
+  protected readonly submitting = signal(false);
+  protected readonly submissionError = signal<string | null>(null);
+  protected readonly emailApiError = signal<string | null>(null);
   protected readonly currentSectionIndex = signal(0);
   protected readonly highestAvailableSectionIndex = signal(0);
   protected readonly transitionDirection = signal<TransitionDirection>('forward');
@@ -219,6 +229,8 @@ export class CareerSurvey implements OnDestroy {
   private priorityAnimationFrames: number[] = [];
   private scrollRenderRef: AfterRenderRef | null = null;
   private readonly injector = inject(Injector);
+  private readonly submissionService = inject(SubmissionService);
+  private readonly duplicateEmailMessage = 'Esse e-mail já está sendo utilizado';
 
   protected readonly formModel = signal<SurveyFormModel>(initialSurveyModel());
   protected readonly form = createSignalForm(this.formModel, surveySchema);
@@ -327,8 +339,15 @@ export class CareerSurvey implements OnDestroy {
     this.cancelPriorityAnimationFrames();
   }
 
-  submit(event: Event): void {
+  async submit(event: Event): Promise<void> {
     event.preventDefault();
+
+    if (this.submitting()) {
+      return;
+    }
+
+    this.submissionError.set(null);
+    this.emailApiError.set(null);
     this.submitted.set(true);
     this.form().markAsTouched();
 
@@ -337,28 +356,19 @@ export class CareerSurvey implements OnDestroy {
       return;
     }
 
-    const value = this.form().value();
-    const surveyAnswers: SurveyAnswers = {
-      participationConsent: value.participationConsent,
-      academicUseConsent: value.academicUseConsent,
-      name: value.name.trim(),
-      email: value.email.trim(),
-      currentSituation: value.currentSituation,
-      interestArea: value.interestArea,
-      experienceLevel: value.experienceLevel,
-      technologies: value.technologies,
-      marketConfidence: Number(value.marketConfidence),
-      careerPriorities: value.careerPriorities,
-      recommendationScore: Number(value.recommendationScore),
-      age: Number(value.age),
-      salaryExpectation: Number(value.salaryExpectation),
-      usesAi: value.usesAi,
-      additionalComments: value.additionalComments.trim(),
-    };
+    const surveyAnswers = this.buildSurveyAnswers();
 
-    console.log(surveyAnswers);
-    this.highestAvailableSectionIndex.set(this.sections.length - 1);
-    this.activateSection(this.sections.length - 1);
+    this.submitting.set(true);
+
+    try {
+      await firstValueFrom(this.submissionService.createSubmission(surveyAnswers));
+      this.highestAvailableSectionIndex.set(this.sections.length - 1);
+      this.activateSection(this.sections.length - 1);
+    } catch (error) {
+      this.handleSubmissionError(error);
+    } finally {
+      this.submitting.set(false);
+    }
   }
 
   protected goToSection(index: number): void {
@@ -411,6 +421,11 @@ export class CareerSurvey implements OnDestroy {
   protected setTextValue(field: FieldTree<string>, value: string): void {
     field().value.set(value);
     field().markAsTouched();
+  }
+
+  protected setEmailValue(value: string): void {
+    this.emailApiError.set(null);
+    this.setTextValue(this.form.email, value);
   }
 
   protected setStringChoiceValue(field: FieldTree<string>, value: QuestionOptionValue): void {
@@ -669,6 +684,81 @@ export class CareerSurvey implements OnDestroy {
     } finally {
       input.remove();
     }
+  }
+
+  private buildSurveyAnswers(): SurveyAnswers {
+    const value = this.form().value();
+
+    return {
+      participationConsent: value.participationConsent,
+      academicUseConsent: value.academicUseConsent,
+      name: value.name.trim(),
+      email: value.email.trim(),
+      currentSituation: value.currentSituation as CurrentSituation,
+      interestArea: value.interestArea as InterestArea,
+      experienceLevel: value.experienceLevel as ExperienceLevel,
+      technologies: value.technologies as Technology[],
+      marketConfidence: Number(value.marketConfidence),
+      careerPriorities: value.careerPriorities as CareerPriority[],
+      recommendationScore: Number(value.recommendationScore),
+      age: Number(value.age),
+      salaryExpectation: Number(value.salaryExpectation),
+      usesAi: value.usesAi,
+      additionalComments: value.additionalComments.trim(),
+    };
+  }
+
+  private handleSubmissionError(error: unknown): void {
+    if (error instanceof HttpErrorResponse) {
+      const messages = this.apiErrorMessages(error);
+
+      if (
+        messages.some(
+          (message) =>
+            message === this.duplicateEmailMessage ||
+            message === 'Esse e-mail já está sendo utiulizado',
+        )
+      ) {
+        this.emailApiError.set(this.duplicateEmailMessage);
+        this.form.email().markAsTouched();
+        this.highestAvailableSectionIndex.update((value) => Math.max(value, 1));
+        this.activateSection(1);
+        return;
+      }
+
+      if (error.status === 400) {
+        this.submissionError.set('Revise os dados informados e tente novamente.');
+        return;
+      }
+    }
+
+    this.submissionError.set('Não foi possível enviar sua resposta. Tente novamente.');
+  }
+
+  private apiErrorMessages(error: HttpErrorResponse): string[] {
+    const body = error.error as unknown;
+
+    if (typeof body === 'string') {
+      return [body];
+    }
+
+    if (!this.isApiErrorBody(body)) {
+      return [];
+    }
+
+    if (typeof body.message === 'string') {
+      return [body.message];
+    }
+
+    if (Array.isArray(body.message)) {
+      return body.message.filter((message): message is string => typeof message === 'string');
+    }
+
+    return [];
+  }
+
+  private isApiErrorBody(value: unknown): value is ApiErrorBody {
+    return typeof value === 'object' && value !== null && 'message' in value;
   }
 
   private validateSection(index: number): boolean {

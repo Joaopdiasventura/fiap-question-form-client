@@ -46,6 +46,9 @@
           },
           "configurations": {
             "production": {
+              "define": {
+                "API_URL": "'https://fiap-question-form-api.joaopdias.dev.br'"
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -61,6 +64,9 @@
               "outputHashing": "all"
             },
             "development": {
+              "define": {
+                "API_URL": "'http://localhost:3000'"
+              },
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
