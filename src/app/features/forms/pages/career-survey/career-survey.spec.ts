@@ -25,7 +25,10 @@ interface CareerSurveyTestApi {
   form: FieldTree<SurveyFormModel>;
   formModel: WritableSignal<SurveyFormModel>;
   dragPreview(): { label: string; width: number; height: number; x: number; y: number } | null;
+  shareStatus(): 'idle' | 'copied' | 'error';
   submit(event: Event): void;
+  shareSurvey(): Promise<void>;
+  copySurveyLink(): Promise<void>;
   continueFromSection(): void;
   goToSection(index: number): void;
   movePriority(index: number, direction: -1 | 1): void;
@@ -73,23 +76,7 @@ describe('CareerSurvey', () => {
   it('logs one clean object when the survey is valid', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
-    patchFormValues(component, {
-      participationConsent: true,
-      academicUseConsent: true,
-      name: 'Joao',
-      email: 'joao@example.com',
-      currentSituation: 'student',
-      interestArea: 'data',
-      experienceLevel: 'upToTwoYears',
-      technologies: ['python', 'sql'],
-      marketConfidence: 4,
-      careerPriorities: ['learning', 'salary', 'stability', 'remoteWork', 'purpose'],
-      recommendationScore: 9,
-      age: 28,
-      salaryExpectation: 7000,
-      usesAi: true,
-      additionalComments: 'Boa pesquisa',
-    });
+    patchFormValues(component, validFormValues());
 
     component.submit(new Event('submit'));
 
@@ -111,6 +98,30 @@ describe('CareerSurvey', () => {
       usesAi: true,
       additionalComments: 'Boa pesquisa',
     });
+    expect(component.currentSectionIndex()).toBe(3);
+  });
+
+  it('shows the thank-you section and scrolls it into view after valid submit', async () => {
+    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+    const scrollIntoView = vi.fn();
+    HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+    patchFormValues(component, validFormValues());
+    component.submit(new Event('submit'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await nextFrame();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent || '';
+
+    expect(text).toContain('Obrigado por participar!');
+    expect(text).toContain('Compartilhar pesquisa');
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'start',
+    });
+
+    HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
   });
 
   it('validates only the current section before moving forward', () => {
@@ -163,6 +174,39 @@ describe('CareerSurvey', () => {
     });
 
     HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+  });
+
+  it('uses the native share sheet when available', async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const restoreShare = mockNavigatorProperty('share', share);
+    const restoreClipboard = mockNavigatorProperty('clipboard', { writeText });
+
+    await component.shareSurvey();
+
+    expect(share).toHaveBeenCalledWith({
+      title: 'Pesquisa de Carreira no Mercado de TI em 2026',
+      text: 'Participe da pesquisa acadêmica da FIAP sobre carreira e mercado de TI em 2026.',
+      url: location.href,
+    });
+    expect(writeText).not.toHaveBeenCalled();
+
+    restoreShare();
+    restoreClipboard();
+  });
+
+  it('copies the survey link when native sharing is unavailable', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const restoreShare = mockNavigatorProperty('share', undefined);
+    const restoreClipboard = mockNavigatorProperty('clipboard', { writeText });
+
+    await component.shareSurvey();
+
+    expect(writeText).toHaveBeenCalledWith(location.href);
+    expect(component.shareStatus()).toBe('copied');
+
+    restoreShare();
+    restoreClipboard();
   });
 
   it('reorders career priorities with the accessible controls', () => {
@@ -286,6 +330,44 @@ describe('CareerSurvey', () => {
 
 function patchFormValues(component: CareerSurveyTestApi, value: Partial<SurveyFormModel>): void {
   component.formModel.update((current) => ({ ...current, ...value }));
+}
+
+function validFormValues(): SurveyFormModel {
+  return {
+    participationConsent: true,
+    academicUseConsent: true,
+    name: 'Joao',
+    email: 'joao@example.com',
+    currentSituation: 'student',
+    interestArea: 'data',
+    experienceLevel: 'upToTwoYears',
+    technologies: ['python', 'sql'],
+    marketConfidence: 4,
+    careerPriorities: ['learning', 'salary', 'stability', 'remoteWork', 'purpose'],
+    recommendationScore: 9,
+    age: 28,
+    salaryExpectation: 7000,
+    usesAi: true,
+    additionalComments: 'Boa pesquisa',
+  };
+}
+
+function mockNavigatorProperty(property: keyof Navigator, value: unknown): () => void {
+  const descriptor = Object.getOwnPropertyDescriptor(navigator, property);
+
+  Object.defineProperty(navigator, property, {
+    configurable: true,
+    value,
+  });
+
+  return () => {
+    if (descriptor) {
+      Object.defineProperty(navigator, property, descriptor);
+      return;
+    }
+
+    Reflect.deleteProperty(navigator, property);
+  };
 }
 
 function createPriorityList(values: string[]): HTMLElement {

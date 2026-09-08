@@ -11,7 +11,7 @@
 
 .stepper {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
@@ -182,6 +182,22 @@
 
 .survey-actions {
   justify-content: space-between;
+}
+
+.success-section {
+  min-height: 320px;
+  align-content: start;
+}
+
+.success-actions {
+  justify-content: flex-start;
+}
+
+.share-status {
+  min-height: 1.4em;
+  margin: 0;
+  color: var(--fiap-muted);
+  font-weight: 700;
 }
 
 @keyframes panel-slide-forward {

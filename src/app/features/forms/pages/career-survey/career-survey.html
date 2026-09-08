@@ -313,26 +313,70 @@
               />
             </section>
           }
+
+          @case ('success') {
+            <section
+              class="survey-panel survey-section success-section"
+              [class.survey-panel--backward]="transitionDirection() === 'backward'"
+              aria-labelledby="success-heading"
+              #activeSectionElement
+            >
+              <p class="page-kicker">Questionário enviado</p>
+              <h2 class="page-title page-title--compact" id="success-heading">
+                Obrigado por participar!
+              </h2>
+              <div class="survey-copy">
+                <p>
+                  Sua resposta ajuda a construir uma visão mais realista sobre o mercado de TI em
+                  2026.
+                </p>
+                <p>
+                  Se puder, compartilhe esta pesquisa com colegas, amigos e outras pessoas da área.
+                  Quanto mais respostas tivermos, mais representativos serão os resultados.
+                </p>
+              </div>
+              <div class="actions success-actions">
+                <button class="button button--primary" type="button" (click)="shareSurvey()">
+                  Compartilhar pesquisa
+                </button>
+                <button class="button button--ghost" type="button" (click)="copySurveyLink()">
+                  Copiar link
+                </button>
+              </div>
+              <p class="share-status" aria-live="polite">
+                @switch (shareStatus()) {
+                  @case ('copied') {
+                    Link copiado.
+                  }
+                  @case ('error') {
+                    Não foi possível copiar o link.
+                  }
+                }
+              </p>
+            </section>
+          }
         }
       </div>
 
-      <div class="actions survey-actions">
-        <button
-          class="button button--ghost"
-          type="button"
-          [disabled]="isFirstSection()"
-          (click)="previousSection()"
-        >
-          Voltar
-        </button>
-        @if (isLastSection()) {
-          <button class="button button--primary" type="submit">Enviar respostas</button>
-        } @else {
-          <button class="button button--primary" type="button" (click)="continueFromSection()">
-            Continuar
+      @if (!isSuccessSection()) {
+        <div class="actions survey-actions">
+          <button
+            class="button button--ghost"
+            type="button"
+            [disabled]="isFirstSection()"
+            (click)="previousSection()"
+          >
+            Voltar
           </button>
-        }
-      </div>
+          @if (isFinalSurveySection()) {
+            <button class="button button--primary" type="submit">Enviar respostas</button>
+          } @else {
+            <button class="button button--primary" type="button" (click)="continueFromSection()">
+              Continuar
+            </button>
+          }
+        </div>
+      }
     </form>
   </main>
 </div>

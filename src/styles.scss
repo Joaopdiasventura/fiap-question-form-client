@@ -11,11 +11,30 @@
   --fiap-muted-soft: #8f8f8f;
   --fiap-danger: #ff6f91;
   color-scheme: dark;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'DIN', 'Arial', sans-serif;
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-color: var(--fiap-pink) transparent;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--fiap-pink);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--fiap-pink-hover);
 }
 
 html {

@@ -60,8 +60,9 @@ interface SurveyAnswers extends Omit<
 type SurveyControlName = keyof SurveyFormModel;
 type SurveyField =
   FieldTree<string> | FieldTree<boolean> | FieldTree<number | null> | FieldTree<string[]>;
-type SurveySectionId = 'consent' | 'profile' | 'career';
+type SurveySectionId = 'consent' | 'profile' | 'career' | 'success';
 type TransitionDirection = 'forward' | 'backward';
+type ShareStatus = 'idle' | 'copied' | 'error';
 
 interface SurveySection {
   id: SurveySectionId;
@@ -159,6 +160,7 @@ export class CareerSurvey implements OnDestroy {
   protected readonly transitionDirection = signal<TransitionDirection>('forward');
   protected readonly draggedPriority = signal<string | null>(null);
   protected readonly dragPreview = signal<PriorityDragPreview | null>(null);
+  protected readonly shareStatus = signal<ShareStatus>('idle');
   protected readonly recommendationScores = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
   protected readonly priorityLabels = new Map<string, string>([
     ['salary', 'Salário'],
@@ -198,12 +200,19 @@ export class CareerSurvey implements OnDestroy {
         'additionalComments',
       ],
     },
+    {
+      id: 'success',
+      title: 'Final',
+      controlNames: [],
+    },
   ];
   protected readonly activeSection = computed(() => this.sections[this.currentSectionIndex()]);
   protected readonly isFirstSection = computed(() => this.currentSectionIndex() === 0);
   protected readonly isLastSection = computed(
     () => this.currentSectionIndex() === this.sections.length - 1,
   );
+  protected readonly isFinalSurveySection = computed(() => this.activeSection().id === 'career');
+  protected readonly isSuccessSection = computed(() => this.activeSection().id === 'success');
 
   private dragState: PriorityDragState | null = null;
   private scrollFrame = 0;
@@ -348,6 +357,8 @@ export class CareerSurvey implements OnDestroy {
     };
 
     console.log(surveyAnswers);
+    this.highestAvailableSectionIndex.set(this.sections.length - 1);
+    this.activateSection(this.sections.length - 1);
   }
 
   protected goToSection(index: number): void {
@@ -361,7 +372,11 @@ export class CareerSurvey implements OnDestroy {
   protected continueFromSection(): void {
     const sectionIndex = this.currentSectionIndex();
 
-    if (!this.validateSection(sectionIndex) || this.isLastSection()) {
+    if (
+      !this.validateSection(sectionIndex) ||
+      this.isFinalSurveySection() ||
+      this.isLastSection()
+    ) {
       return;
     }
 
@@ -526,6 +541,37 @@ export class CareerSurvey implements OnDestroy {
     ownerDocument.addEventListener('pointercancel', endListener);
   }
 
+  protected async shareSurvey(): Promise<void> {
+    const shareData: ShareData = {
+      title: 'Pesquisa de Carreira no Mercado de TI em 2026',
+      text: 'Participe da pesquisa acadêmica da FIAP sobre carreira e mercado de TI em 2026.',
+      url: this.currentUrl(),
+    };
+
+    this.shareStatus.set('idle');
+
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (error) {
+        if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
+          if (error.name === 'AbortError') {
+            return;
+          }
+        }
+      }
+    }
+
+    await this.copySurveyLink();
+  }
+
+  protected async copySurveyLink(): Promise<void> {
+    this.shareStatus.set('idle');
+    const copied = await this.copyToClipboard(this.currentUrl());
+    this.shareStatus.set(copied ? 'copied' : 'error');
+  }
+
   private textQuestion(id: SurveyControlName, title: string, errorMessage: string): Question {
     return {
       id,
@@ -580,6 +626,49 @@ export class CareerSurvey implements OnDestroy {
       { value: true, label: 'Sim' },
       { value: false, label: 'Não' },
     ];
+  }
+
+  private currentUrl(): string {
+    if (typeof location === 'undefined') {
+      return 'https://fiap-question-form.joaopdias.dev.br/';
+    }
+
+    return location.href;
+  }
+
+  private async copyToClipboard(value: string): Promise<boolean> {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(value);
+        return true;
+      } catch {
+        return this.copyWithTemporaryInput(value);
+      }
+    }
+
+    return this.copyWithTemporaryInput(value);
+  }
+
+  private copyWithTemporaryInput(value: string): boolean {
+    if (typeof document === 'undefined') {
+      return false;
+    }
+
+    const input = document.createElement('textarea');
+    input.value = value;
+    input.setAttribute('readonly', '');
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    document.body.append(input);
+    input.select();
+
+    try {
+      return document.execCommand('copy');
+    } catch {
+      return false;
+    } finally {
+      input.remove();
+    }
   }
 
   private validateSection(index: number): boolean {
