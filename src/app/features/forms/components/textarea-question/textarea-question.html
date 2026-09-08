@@ -20,7 +20,9 @@
       (blur)="touched.emit()"
     ></textarea>
     @if (invalid()) {
-      <span class="error" [id]="question().id + '-error'">Responda esta pergunta obrigatoria.</span>
+      <span class="error" [id]="question().id + '-error'">{{
+        errorMessage() || question().errorMessage || 'Responda esta pergunta obrigatoria.'
+      }}</span>
     }
   </div>
 </section>

@@ -9,10 +9,11 @@
     </label>
     <input
       class="input"
-      type="text"
+      [type]="inputType()"
       [id]="question().id"
       [value]="value() ?? ''"
       [disabled]="disabled()"
+      [attr.autocomplete]="autocomplete()"
       [class.input--invalid]="invalid()"
       [attr.aria-invalid]="invalid()"
       [attr.aria-describedby]="invalid() ? question().id + '-error' : null"
@@ -21,7 +22,9 @@
       (blur)="touched.emit()"
     />
     @if (invalid()) {
-      <span class="error" [id]="question().id + '-error'">Responda esta pergunta obrigatoria.</span>
+      <span class="error" [id]="question().id + '-error'">{{
+        errorMessage() || question().errorMessage || 'Responda esta pergunta obrigatoria.'
+      }}</span>
     }
   </div>
 </section>

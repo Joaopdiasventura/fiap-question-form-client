@@ -1,6 +1,10 @@
 <section class="question-block">
   <span class="question-index">Pergunta {{ index() + 1 }}</span>
-  <fieldset class="field">
+  <fieldset
+    class="field"
+    [attr.aria-describedby]="invalid() ? question().id + '-error' : null"
+    [attr.aria-invalid]="invalid()"
+  >
     <legend class="question-block__title">
       {{ question().title }}
       @if (question().required) {
@@ -8,21 +12,23 @@
       }
     </legend>
     <div class="choice-list">
-      @for (option of question().options; track option) {
+      @for (option of question().options; track option.value) {
         <app-toggle
           controlType="radio"
           [id]="optionId($index)"
           [name]="groupName()"
-          [label]="option"
-          [checked]="value() === option"
+          [label]="option.label"
+          [checked]="value() === option.value"
           [disabled]="disabled()"
-          (checkedChange)="choose(option, $event)"
+          (checkedChange)="choose(option.value, $event)"
           (touched)="touched.emit()"
         />
       }
     </div>
     @if (invalid()) {
-      <span class="error" [id]="question().id + '-error'">Escolha uma alternativa para continuar.</span>
+      <span class="error" [id]="question().id + '-error'">{{
+        errorMessage() || question().errorMessage || 'Escolha uma alternativa para continuar.'
+      }}</span>
     }
   </fieldset>
 </section>

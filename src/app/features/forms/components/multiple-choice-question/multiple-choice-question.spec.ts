@@ -26,19 +26,21 @@ describe('MultipleChoiceQuestion', () => {
     const values: string[][] = [];
     component.valueChange.subscribe((value) => values.push(value));
 
-    component.toggle('Aulas', true);
-    fixture.componentRef.setInput('value', ['Aulas']);
-    component.toggle('Notas', true);
-    fixture.componentRef.setInput('value', ['Aulas', 'Notas']);
-    component.toggle('Aulas', false);
+    component.toggle('classes', true);
+    fixture.componentRef.setInput('value', ['classes']);
+    component.toggle('grades', true);
+    fixture.componentRef.setInput('value', ['classes', 'grades']);
+    component.toggle('classes', false);
 
-    expect(values).toEqual([['Aulas'], ['Aulas', 'Notas'], ['Notas']]);
+    expect(values).toEqual([['classes'], ['classes', 'grades'], ['grades']]);
   });
 
   it('renders reusable switch toggles with real checkboxes', () => {
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('input[type="checkbox"]').length).toBe(2);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('input[type="checkbox"]').length,
+    ).toBe(2);
   });
 });
 
@@ -46,6 +48,9 @@ const question: Question = {
   id: 'q-multiple',
   title: 'Recursos',
   type: 'MULTIPLE_CHOICE',
-  options: ['Aulas', 'Notas'],
+  options: [
+    { value: 'classes', label: 'Aulas' },
+    { value: 'grades', label: 'Notas' },
+  ],
   required: false,
 };

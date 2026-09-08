@@ -30,7 +30,9 @@
     </div>
     <span class="muted" aria-live="polite">Valor selecionado: {{ value() || 'nenhum' }}</span>
     @if (invalid()) {
-      <span class="error" [id]="question().id + '-error'">Selecione uma avaliacao de 1 a 5.</span>
+      <span class="error" [id]="question().id + '-error'">{{
+        errorMessage() || question().errorMessage || 'Selecione uma avaliacao de 1 a 5.'
+      }}</span>
     }
   </fieldset>
 </section>

@@ -13,6 +13,7 @@ export class TextareaQuestion {
   value = input<string | null>(null);
   invalid = input(false);
   disabled = input(false);
+  errorMessage = input<string | null>(null);
   valueChange = output<string>();
   touched = output<void>();
 

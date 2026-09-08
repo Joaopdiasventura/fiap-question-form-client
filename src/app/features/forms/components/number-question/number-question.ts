@@ -13,6 +13,10 @@ export class NumberQuestion {
   value = input<number | string | null>(null);
   invalid = input(false);
   disabled = input(false);
+  min = input<number | null>(null);
+  max = input<number | null>(null);
+  step = input<number | null>(null);
+  errorMessage = input<string | null>(null);
   valueChange = output<number | null>();
   touched = output<void>();
 

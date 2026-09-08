@@ -13,6 +13,9 @@ export class TextQuestion {
   value = input<string | null>(null);
   invalid = input(false);
   disabled = input(false);
+  inputType = input<'email' | 'text'>('text');
+  autocomplete = input<string | null>(null);
+  errorMessage = input<string | null>(null);
   valueChange = output<string>();
   touched = output<void>();
 

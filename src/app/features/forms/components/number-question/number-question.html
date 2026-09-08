@@ -13,6 +13,9 @@
       [id]="question().id"
       [value]="value() ?? ''"
       [disabled]="disabled()"
+      [attr.min]="min()"
+      [attr.max]="max()"
+      [attr.step]="step()"
       [class.input--invalid]="invalid()"
       [attr.aria-invalid]="invalid()"
       [attr.aria-describedby]="invalid() ? question().id + '-error' : null"
@@ -21,7 +24,9 @@
       (blur)="touched.emit()"
     />
     @if (invalid()) {
-      <span class="error" [id]="question().id + '-error'">Informe um numero para continuar.</span>
+      <span class="error" [id]="question().id + '-error'">{{
+        errorMessage() || question().errorMessage || 'Informe um numero para continuar.'
+      }}</span>
     }
   </div>
 </section>

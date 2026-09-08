@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
-import { Question } from '../../models/form.models';
+import { Question, QuestionOptionValue } from '../../models/form.models';
 import { Toggle } from '../../../../shared/components/toggle/toggle';
 
 @Component({
@@ -11,10 +11,11 @@ import { Toggle } from '../../../../shared/components/toggle/toggle';
 export class SingleChoiceQuestion {
   question = input.required<Question>();
   index = input(0);
-  value = input<string | null>(null);
+  value = input<QuestionOptionValue | null>(null);
   invalid = input(false);
   disabled = input(false);
-  valueChange = output<string>();
+  errorMessage = input<string | null>(null);
+  valueChange = output<QuestionOptionValue>();
   touched = output<void>();
 
   protected readonly groupName = computed(() => `single-choice-${this.question().id}`);
@@ -23,12 +24,12 @@ export class SingleChoiceQuestion {
     return `${this.question().id}-option-${optionIndex}`;
   }
 
-  choose(option: string, checked = true): void {
+  choose(value: QuestionOptionValue, checked = true): void {
     if (this.disabled() || !checked) {
       return;
     }
 
-    this.valueChange.emit(option);
+    this.valueChange.emit(value);
     this.touched.emit();
   }
 }

@@ -206,7 +206,7 @@ select:focus-visible {
 
 .field {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .field label,
@@ -223,6 +223,10 @@ fieldset.field {
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+fieldset.field > legend {
+  margin-bottom: 12px;
 }
 
 .required {
@@ -249,7 +253,9 @@ fieldset.field {
   border-radius: 2px;
   background: var(--fiap-black);
   color: var(--fiap-text);
-  transition: border-color 180ms ease, background 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
 select.input {
@@ -471,7 +477,7 @@ input[type='date'].input::-webkit-calendar-picker-indicator {
 }
 
 .choice-toggle input:checked::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 4px;
   border: 2px solid var(--fiap-text);
@@ -491,8 +497,9 @@ input[type='date'].input::-webkit-calendar-picker-indicator {
 }
 
 .rating {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  justify-content: center;
   gap: 8px;
 }
 

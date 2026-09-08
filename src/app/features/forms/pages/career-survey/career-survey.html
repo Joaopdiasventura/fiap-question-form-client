@@ -1,0 +1,338 @@
+<div class="public-shell">
+  <div class="public-mark">
+    <div class="fiap-wordmark" aria-label="FIAP Forms"><img src="logo.svg" alt="fiap logo" /></div>
+  </div>
+
+  <main class="page page--narrow">
+    <p class="page-kicker">Pesquisa para a matéria de Computação Estatística com R e Python</p>
+    <h1 class="page-title page-title--compact">Mercado de TI em 2026</h1>
+    <p class="page-intro">
+      Sua participação ajuda a compreender expectativas, interesses e percepções sobre carreira em
+      tecnologia até o fim de 2026.
+    </p>
+    <div class="divider" aria-hidden="true"></div>
+
+    <form class="stack--loose" (submit)="submit($event)">
+      <section class="card question-card card--active" aria-labelledby="presentation-heading">
+        <p class="page-kicker">Apresentação</p>
+        <h2 id="presentation-heading">Antes de começar</h2>
+        <div class="survey-copy">
+          <p>
+            Objetivo da pesquisa: levantar dados acadêmicos sobre perfil, carreira e expectativas no
+            mercado de TI em 2026.
+          </p>
+          <p>
+            Sua participação é importante para ampliar a análise estatística com diferentes
+            experiências e interesses na área.
+          </p>
+          <p>O questionário leva aproximadamente 3–5 minutos para responder.</p>
+          <p>As respostas serão tratadas e usadas somente para fins acadêmicos.</p>
+          <p>Contato dos responsáveis: joaopdias.dev@gmail.com</p>
+        </div>
+      </section>
+
+      <nav class="stepper" aria-label="Seções do questionário">
+        @for (section of sections; track section.id) {
+          <button
+            [class]="sectionButtonClass($index)"
+            type="button"
+            [disabled]="!isSectionAvailable($index)"
+            [attr.aria-current]="currentSectionIndex() === $index ? 'step' : null"
+            (click)="goToSection($index)"
+          >
+            <span class="stepper__number">{{ $index + 1 }}</span>
+            <span>{{ section.title }}</span>
+          </button>
+        }
+      </nav>
+
+      <div class="survey-panel-shell">
+        @switch (activeSection().id) {
+          @case ('consent') {
+            <section
+              class="survey-panel survey-section"
+              [class.survey-panel--backward]="transitionDirection() === 'backward'"
+              aria-labelledby="consent-heading"
+              #activeSectionElement
+            >
+              <h2 class="survey-section__title" id="consent-heading">Consentimento</h2>
+              <app-single-choice-question
+                [question]="questions.participationConsent"
+                [index]="0"
+                [value]="form.participationConsent().value()"
+                [invalid]="showError(form.participationConsent)"
+                (valueChange)="setBooleanChoiceValue(form.participationConsent, $event)"
+                (touched)="markTouched(form.participationConsent)"
+              />
+              <app-single-choice-question
+                [question]="questions.academicUseConsent"
+                [index]="1"
+                [value]="form.academicUseConsent().value()"
+                [invalid]="showError(form.academicUseConsent)"
+                (valueChange)="setBooleanChoiceValue(form.academicUseConsent, $event)"
+                (touched)="markTouched(form.academicUseConsent)"
+              />
+            </section>
+          }
+
+          @case ('profile') {
+            <section
+              class="survey-panel survey-section"
+              [class.survey-panel--backward]="transitionDirection() === 'backward'"
+              aria-labelledby="profile-heading"
+              #activeSectionElement
+            >
+              <h2 class="survey-section__title" id="profile-heading">Perfil</h2>
+              <app-text-question
+                [question]="questions.name"
+                [index]="2"
+                [value]="form.name().value()"
+                [invalid]="showError(form.name)"
+                autocomplete="name"
+                (valueChange)="setTextValue(form.name, $event)"
+                (touched)="markTouched(form.name)"
+              />
+              <app-text-question
+                [question]="questions.email"
+                [index]="3"
+                [value]="form.email().value()"
+                [invalid]="showError(form.email)"
+                inputType="email"
+                autocomplete="email"
+                (valueChange)="setTextValue(form.email, $event)"
+                (touched)="markTouched(form.email)"
+              />
+              <app-single-choice-question
+                [question]="questions.currentSituation"
+                [index]="4"
+                [value]="form.currentSituation().value() || null"
+                [invalid]="showError(form.currentSituation)"
+                (valueChange)="setStringChoiceValue(form.currentSituation, $event)"
+                (touched)="markTouched(form.currentSituation)"
+              />
+              <app-single-choice-question
+                [question]="questions.interestArea"
+                [index]="5"
+                [value]="form.interestArea().value() || null"
+                [invalid]="showError(form.interestArea)"
+                (valueChange)="setStringChoiceValue(form.interestArea, $event)"
+                (touched)="markTouched(form.interestArea)"
+              />
+              <app-single-choice-question
+                [question]="questions.experienceLevel"
+                [index]="6"
+                [value]="form.experienceLevel().value() || null"
+                [invalid]="showError(form.experienceLevel)"
+                (valueChange)="setStringChoiceValue(form.experienceLevel, $event)"
+                (touched)="markTouched(form.experienceLevel)"
+              />
+              <app-multiple-choice-question
+                [question]="questions.technologies"
+                [index]="7"
+                [value]="form.technologies().value()"
+                [invalid]="showError(form.technologies)"
+                (valueChange)="setMultipleChoiceValue(form.technologies, $event)"
+                (touched)="markTouched(form.technologies)"
+              />
+            </section>
+          }
+
+          @case ('career') {
+            <section
+              class="survey-panel survey-section"
+              [class.survey-panel--backward]="transitionDirection() === 'backward'"
+              aria-labelledby="career-heading"
+              #activeSectionElement
+            >
+              <h2 class="survey-section__title" id="career-heading">Mercado e carreira</h2>
+              <app-rating-question
+                [question]="questions.marketConfidence"
+                [index]="8"
+                [value]="form.marketConfidence().value()"
+                [invalid]="showError(form.marketConfidence)"
+                (valueChange)="setNumberValue(form.marketConfidence, $event)"
+                (touched)="markTouched(form.marketConfidence)"
+              />
+
+              <section class="question-block">
+                <span class="question-index">Pergunta 10</span>
+                <fieldset
+                  class="field"
+                  [attr.aria-describedby]="
+                    showError(form.careerPriorities) ? 'careerPriorities-error' : null
+                  "
+                  [attr.aria-invalid]="showError(form.careerPriorities)"
+                >
+                  <legend class="question-block__title">
+                    {{ questions.careerPriorities.title }}
+                    <span class="required" aria-hidden="true">*</span
+                    ><span class="sr-only">Obrigatória</span>
+                  </legend>
+                  <ol class="priority-list" #priorityList>
+                    @for (priority of form.careerPriorities().value(); track priority) {
+                      <li
+                        class="priority-item"
+                        [class.priority-item--placeholder]="draggedPriority() === priority"
+                        [attr.data-priority-id]="priority"
+                        #priorityItem
+                      >
+                        <button
+                          class="priority-item__handle"
+                          type="button"
+                          [attr.aria-label]="'Arrastar ' + priorityLabel(priority)"
+                          (pointerdown)="
+                            startPriorityDrag($event, priority, priorityList, priorityItem)
+                          "
+                        >
+                          <span aria-hidden="true">☰</span>
+                        </button>
+                        <span class="priority-item__label">{{ priorityLabel(priority) }}</span>
+                        <div class="actions priority-item__actions">
+                          <button
+                            class="button button--ghost"
+                            type="button"
+                            [disabled]="$first"
+                            [attr.aria-label]="'Mover ' + priorityLabel(priority) + ' para cima'"
+                            (click)="movePriority($index, -1)"
+                          >
+                            Subir
+                          </button>
+                          <button
+                            class="button button--ghost"
+                            type="button"
+                            [disabled]="$last"
+                            [attr.aria-label]="'Mover ' + priorityLabel(priority) + ' para baixo'"
+                            (click)="movePriority($index, 1)"
+                          >
+                            Descer
+                          </button>
+                        </div>
+                      </li>
+                    }
+                  </ol>
+                  @if (dragPreview(); as preview) {
+                    <div
+                      class="priority-drag-preview"
+                      aria-hidden="true"
+                      [style.width.px]="preview.width"
+                      [style.height.px]="preview.height"
+                      [style.transform]="priorityDragTransform(preview)"
+                    >
+                      <span class="priority-item__handle" aria-hidden="true">☰</span>
+                      <span class="priority-item__label">{{ preview.label }}</span>
+                    </div>
+                  }
+                  @if (showError(form.careerPriorities)) {
+                    <span class="error" id="careerPriorities-error">{{
+                      questions.careerPriorities.errorMessage
+                    }}</span>
+                  }
+                </fieldset>
+              </section>
+
+              <section class="question-block">
+                <span class="question-index">Pergunta 11</span>
+                <fieldset
+                  class="field"
+                  [attr.aria-describedby]="
+                    showError(form.recommendationScore) ? 'recommendationScore-error' : null
+                  "
+                  [attr.aria-invalid]="showError(form.recommendationScore)"
+                >
+                  <legend class="question-block__title">
+                    {{ questions.recommendationScore.title }}
+                    <span class="required" aria-hidden="true">*</span
+                    ><span class="sr-only">Obrigatória</span>
+                  </legend>
+                  <div
+                    class="rating survey-scale"
+                    role="radiogroup"
+                    [attr.aria-label]="questions.recommendationScore.title"
+                  >
+                    @for (score of recommendationScores; track score) {
+                      <button
+                        type="button"
+                        role="radio"
+                        [attr.aria-checked]="form.recommendationScore().value() === score"
+                        [attr.aria-label]="score + ' de 10'"
+                        (click)="chooseRecommendationScore(score)"
+                        (blur)="markTouched(form.recommendationScore)"
+                        (keydown)="onRecommendationKeydown($event, score)"
+                      >
+                        {{ score }}
+                      </button>
+                    }
+                  </div>
+                  <span class="muted" aria-live="polite"
+                    >Valor selecionado: {{ form.recommendationScore().value() ?? 'nenhum' }}</span
+                  >
+                  @if (showError(form.recommendationScore)) {
+                    <span class="error" id="recommendationScore-error">{{
+                      questions.recommendationScore.errorMessage
+                    }}</span>
+                  }
+                </fieldset>
+              </section>
+
+              <app-number-question
+                [question]="questions.age"
+                [index]="11"
+                [value]="form.age().value()"
+                [invalid]="showError(form.age)"
+                [min]="1"
+                [max]="120"
+                [step]="1"
+                (valueChange)="setNumberValue(form.age, $event)"
+                (touched)="markTouched(form.age)"
+              />
+              <app-number-question
+                [question]="questions.salaryExpectation"
+                [index]="12"
+                [value]="form.salaryExpectation().value()"
+                [invalid]="showError(form.salaryExpectation)"
+                [min]="1"
+                [step]="1"
+                (valueChange)="setNumberValue(form.salaryExpectation, $event)"
+                (touched)="markTouched(form.salaryExpectation)"
+              />
+              <app-single-choice-question
+                [question]="questions.usesAi"
+                [index]="13"
+                [value]="form.usesAi().value()"
+                [invalid]="showError(form.usesAi)"
+                (valueChange)="setBooleanChoiceValue(form.usesAi, $event)"
+                (touched)="markTouched(form.usesAi)"
+              />
+              <app-textarea-question
+                [question]="questions.additionalComments"
+                [index]="14"
+                [value]="form.additionalComments().value()"
+                [invalid]="showError(form.additionalComments)"
+                (valueChange)="setTextValue(form.additionalComments, $event)"
+                (touched)="markTouched(form.additionalComments)"
+              />
+            </section>
+          }
+        }
+      </div>
+
+      <div class="actions survey-actions">
+        <button
+          class="button button--ghost"
+          type="button"
+          [disabled]="isFirstSection()"
+          (click)="previousSection()"
+        >
+          Voltar
+        </button>
+        @if (isLastSection()) {
+          <button class="button button--primary" type="submit">Enviar respostas</button>
+        } @else {
+          <button class="button button--primary" type="button" (click)="continueFromSection()">
+            Continuar
+          </button>
+        }
+      </div>
+    </form>
+  </main>
+</div>

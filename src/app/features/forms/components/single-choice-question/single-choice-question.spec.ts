@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SingleChoiceQuestion } from './single-choice-question';
-import { Question } from '../../models/form.models';
+import { Question, QuestionOptionValue } from '../../models/form.models';
 
 describe('SingleChoiceQuestion', () => {
   let component: SingleChoiceQuestion;
@@ -22,14 +22,14 @@ describe('SingleChoiceQuestion', () => {
   });
 
   it('allows only one selected option', () => {
-    const values: string[] = [];
+    const values: QuestionOptionValue[] = [];
     component.valueChange.subscribe((value) => values.push(value));
     fixture.detectChanges();
 
-    component.choose('Manha');
-    component.choose('Noite');
+    component.choose('morning');
+    component.choose('night');
 
-    expect(values).toEqual(['Manha', 'Noite']);
+    expect(values).toEqual(['morning', 'night']);
   });
 
   it('keeps real radio inputs and shows validation', () => {
@@ -47,6 +47,9 @@ const question: Question = {
   id: 'q-single',
   title: 'Periodo',
   type: 'SINGLE_CHOICE',
-  options: ['Manha', 'Noite'],
+  options: [
+    { value: 'morning', label: 'Manha' },
+    { value: 'night', label: 'Noite' },
+  ],
   required: true,
 };

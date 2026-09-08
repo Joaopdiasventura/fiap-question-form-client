@@ -3,15 +3,15 @@ import { routes } from './app.routes';
 import { serverRoutes } from './app.routes.server';
 
 describe('routing', () => {
-  it('keeps the public response route accessible without authentication', () => {
-    const publicRoute = routes.find((route) => route.path === 'forms/:id');
+  it('loads the career survey on the main route', () => {
+    const mainRoute = routes.find((route) => route.path === '');
 
-    expect(publicRoute?.canActivate).toBeUndefined();
+    expect(mainRoute?.loadComponent).toBeDefined();
   });
 
-  it('renders the public response route with server-side rendering', () => {
-    const publicServerRoute = serverRoutes.find((route) => route.path === 'forms/:id');
+  it('prerenders the simplified survey application', () => {
+    const fallbackServerRoute = serverRoutes.find((route) => route.path === '**');
 
-    expect(publicServerRoute?.renderMode).toBe(RenderMode.Server);
+    expect(fallbackServerRoute?.renderMode).toBe(RenderMode.Prerender);
   });
 });

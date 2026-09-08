@@ -1,0 +1,239 @@
+.survey-copy {
+  display: grid;
+  gap: 12px;
+  color: var(--fiap-muted);
+  line-height: 1.55;
+}
+
+.survey-copy p {
+  margin: 0;
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stepper__button {
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px solid var(--fiap-border-strong);
+  background: var(--fiap-black);
+  color: var(--fiap-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.stepper__button:hover {
+  border-color: #666666;
+  background: var(--fiap-surface-2);
+  color: var(--fiap-text);
+}
+
+.stepper__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.stepper__button--active {
+  border-color: var(--fiap-pink);
+  background: #10040a;
+  color: var(--fiap-text);
+}
+
+.stepper__number {
+  min-width: 28px;
+  min-height: 28px;
+  border: 1px solid var(--fiap-border-strong);
+  color: var(--fiap-pink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.survey-panel-shell {
+  overflow: hidden;
+}
+
+.survey-panel {
+  scroll-margin-top: 24px;
+  animation: panel-slide-forward 180ms ease-out;
+}
+
+.survey-panel--backward {
+  animation-name: panel-slide-backward;
+}
+
+.survey-section {
+  display: grid;
+  gap: 22px;
+}
+
+.survey-section__title {
+  margin: 0;
+  color: var(--fiap-pink);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.priority-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style-position: inside;
+  position: relative;
+  user-select: none;
+}
+
+.priority-item {
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1px solid var(--fiap-border-strong);
+  background: var(--fiap-black);
+  color: var(--fiap-text);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+  will-change: transform;
+}
+
+.priority-item--placeholder {
+  border-color: var(--fiap-pink);
+  border-style: dashed;
+  background: var(--fiap-surface);
+  color: var(--fiap-muted);
+  opacity: 0.62;
+}
+
+.priority-item__handle {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--fiap-border-strong);
+  background: transparent;
+  color: var(--fiap-muted);
+  cursor: grab;
+  touch-action: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.priority-item__handle:active {
+  cursor: grabbing;
+}
+
+.priority-item__handle:hover {
+  border-color: #666666;
+  background: var(--fiap-surface-2);
+  color: var(--fiap-text);
+}
+
+.priority-item__label {
+  font-weight: 800;
+}
+
+.priority-drag-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  padding: 12px 14px;
+  border: 1px solid var(--fiap-pink);
+  background: #10040a;
+  color: var(--fiap-text);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  pointer-events: none;
+  box-shadow: 0 18px 38px rgb(0 0 0 / 38%);
+  opacity: 0.96;
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.priority-drag-preview .priority-item__handle {
+  cursor: grabbing;
+}
+
+.priority-item__actions {
+  flex-wrap: nowrap;
+}
+
+.survey-scale {
+  align-items: stretch;
+}
+
+.survey-actions {
+  justify-content: space-between;
+}
+
+@keyframes panel-slide-forward {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes panel-slide-backward {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .survey-panel {
+    animation: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .stepper {
+    grid-template-columns: 1fr;
+  }
+
+  .stepper__button {
+    width: 100%;
+  }
+
+  .priority-item {
+    grid-template-columns: auto 1fr;
+  }
+
+  .priority-item__actions {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .survey-scale button {
+    min-width: 44px;
+    flex: 1 1 44px;
+  }
+}

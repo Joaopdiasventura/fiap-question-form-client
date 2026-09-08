@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { Toggle } from '../../../../shared/components/toggle/toggle';
-import { Question } from '../../models/form.models';
+import { Question, QuestionOptionValue } from '../../models/form.models';
 
 @Component({
   imports: [Toggle],
@@ -14,6 +14,7 @@ export class MultipleChoiceQuestion {
   value = input<string[]>([]);
   invalid = input(false);
   disabled = input(false);
+  errorMessage = input<string | null>(null);
   valueChange = output<string[]>();
   touched = output<void>();
 
@@ -21,17 +22,21 @@ export class MultipleChoiceQuestion {
     return `${this.question().id}-toggle-${optionIndex}`;
   }
 
-  checked(option: string): boolean {
-    return this.value().includes(option);
+  checked(value: QuestionOptionValue): boolean {
+    return typeof value === 'string' && this.value().includes(value);
   }
 
-  toggle(option: string, checked: boolean): void {
+  toggle(value: QuestionOptionValue, checked: boolean): void {
+    if (typeof value !== 'string') {
+      return;
+    }
+
     const values = new Set(this.value());
 
     if (checked) {
-      values.add(option);
+      values.add(value);
     } else {
-      values.delete(option);
+      values.delete(value);
     }
 
     this.valueChange.emit([...values]);

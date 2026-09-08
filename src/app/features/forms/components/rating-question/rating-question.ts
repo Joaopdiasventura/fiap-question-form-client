@@ -13,6 +13,7 @@ export class RatingQuestion {
   value = input<number | null>(null);
   invalid = input(false);
   disabled = input(false);
+  errorMessage = input<string | null>(null);
   valueChange = output<number>();
   touched = output<void>();
 
