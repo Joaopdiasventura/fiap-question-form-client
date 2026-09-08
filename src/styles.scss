@@ -18,6 +18,7 @@
   box-sizing: border-box;
   scrollbar-color: var(--fiap-pink) transparent;
   scrollbar-width: thin;
+  -webkit-tap-highlight-color: transparent;
 }
 
 *::-webkit-scrollbar {
