@@ -38,6 +38,14 @@
   background: var(--fiap-pink-hover);
 }
 
+input:hover::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+input:focus::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
 html {
   background: var(--fiap-black);
 }
